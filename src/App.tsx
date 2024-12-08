@@ -15,13 +15,13 @@ export default function App() {
         } else {
           stopCamera()
         }
-        
-        // cancelar qualquer timer
+
+        // Cancelar qualquer timer
         if (timerRef.current) {
           clearTimeout(timerRef.current)
         }
 
-        // Timer de 10 segundos para manter a camera aberta
+        // Timer de 10 segundos para manter a câmera aberta
         timerRef.current = setTimeout(() => {
           setShowCamera(false)
           stopCamera()
@@ -31,8 +31,8 @@ export default function App() {
 
     return () => {
       console.log("Cleanup: Parando de escutar dados do Firebase")
-      stopCamera()  // Cleanup: parar a câmera se necessário
-      
+      stopCamera() // Cleanup: parar a câmera se necessário
+
       // Clear the timer on unmount
       if (timerRef.current) {
         clearTimeout(timerRef.current)
@@ -43,9 +43,11 @@ export default function App() {
   // Função para iniciar a câmera
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: {facingMode: "user"} })
+      const constraints = { video: { facingMode: "user" } }
+      const stream = await navigator.mediaDevices.getUserMedia(constraints)
       if (videoRef.current) {
         videoRef.current.srcObject = stream
+        videoRef.current.play() // Garantir que o vídeo seja iniciado
       }
     } catch (error) {
       console.error("Erro ao acessar a câmera:", error)
@@ -56,7 +58,7 @@ export default function App() {
   const stopCamera = () => {
     const stream = videoRef.current?.srcObject as MediaStream
     const tracks = stream?.getTracks()
-    tracks?.forEach(track => track.stop())
+    tracks?.forEach((track) => track.stop())
     if (videoRef.current) {
       videoRef.current.srcObject = null
     }
@@ -75,7 +77,12 @@ export default function App() {
       }}
     >
       {showCamera ? (
-        <video ref={videoRef} style={{ width: '100%', height: '100%' }} autoPlay />
+        <video
+          ref={videoRef}
+          style={{ width: '100%', height: '100%' }}
+          autoPlay
+          playsInline // Adicionado para suportar iPhones
+        />
       ) : (
         <div
           style={{
