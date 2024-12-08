@@ -4,27 +4,39 @@ import { listenToData } from './firebaseConfig'
 export default function App() {
   const [showCamera, setShowCamera] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     listenToData('/Sensor/movimento', (cameraState) => {
       if (cameraState !== null) {
         setShowCamera(cameraState)
-
         if (cameraState) {
           startCamera()
         } else {
           stopCamera()
         }
+        
+        // cancelar qualquer timer
+        if (timerRef.current) {
+          clearTimeout(timerRef.current)
+        }
 
-        setTimeout(() => {
+        // Timer de 10 segundos para manter a camera aberta
+        timerRef.current = setTimeout(() => {
           setShowCamera(false)
-        }, 5000)
+          stopCamera()
+        }, 10000)
       }
     })
 
     return () => {
       console.log("Cleanup: Parando de escutar dados do Firebase")
       stopCamera()  // Cleanup: parar a câmera se necessário
+      
+      // Clear the timer on unmount
+      if (timerRef.current) {
+        clearTimeout(timerRef.current)
+      }
     }
   }, [])
 
